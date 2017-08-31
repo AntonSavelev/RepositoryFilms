@@ -4,7 +4,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public interface ApiInterface {
+public interface SwapiService {
     @GET("people/")
     Call<AllPeople> getAllPeoples(@Query("page") int page);
 }

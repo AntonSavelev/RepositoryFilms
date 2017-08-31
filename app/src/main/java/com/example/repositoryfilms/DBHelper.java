@@ -8,7 +8,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "cashDb";
-    public static final String TABLE_PEOPLES = "peoples";
+    public static final String TABLE_PEOPLES = "characters";
 
     public static final String KEY_ID = "_id";
     public static final String KEY_PEOPLE_JSON = "film_json";

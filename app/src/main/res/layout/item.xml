@@ -12,16 +12,17 @@
         android:layout_height="fill_parent"
         android:orientation="vertical">
         <ImageView android:id="@+id/image"
-            android:layout_height="0dp"
             android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1.0"
             android:padding="5dp"
-            android:scaleType="centerCrop"/>
+            android:scaleType="centerCrop"
+            android:src="@drawable/species_1080" />
         <TextView
             android:id="@+id/info_text"
-            android:layout_marginLeft="5dp"
-            android:layout_marginBottom="5dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent"/>
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="5dp" />
     </LinearLayout>
 </android.support.v7.widget.CardView>

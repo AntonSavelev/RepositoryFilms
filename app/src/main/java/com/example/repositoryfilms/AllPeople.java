@@ -18,7 +18,7 @@ public class AllPeople {
     private String previous;
     @SerializedName("results")
     @Expose
-    private List<People> results = null;
+    private List<Character> results = null;
 
     public String getCount() {
         return count;
@@ -44,11 +44,11 @@ public class AllPeople {
         this.previous = previous;
     }
 
-    public List<People> getResults() {
+    public List<Character> getResults() {
         return results;
     }
 
-    public void setResults(List<People> results) {
+    public void setResults(List<Character> results) {
         this.results = results;
     }
 }
