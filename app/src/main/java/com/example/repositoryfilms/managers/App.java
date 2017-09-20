@@ -1,7 +1,11 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.managers;
 
 import android.app.Application;
 
+import com.example.repositoryfilms.utils.Loader;
+import com.example.repositoryfilms.model.DBHelper;
+import com.example.repositoryfilms.utils.PeopleDbHelper;
+import com.example.repositoryfilms.network.ApiClient;
 import com.google.gson.Gson;
 
 

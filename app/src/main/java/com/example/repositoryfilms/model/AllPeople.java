@@ -1,4 +1,4 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.model;
 
 
 import com.google.gson.annotations.Expose;
@@ -24,31 +24,15 @@ public class AllPeople {
         return count;
     }
 
-    public void setCount(String count) {
-        this.count = count;
-    }
-
     public String getNext() {
         return next;
-    }
-
-    public void setNext(String next) {
-        this.next = next;
     }
 
     public Object getPrevious() {
         return previous;
     }
 
-    public void setPrevious(String previous) {
-        this.previous = previous;
-    }
-
     public List<Character> getResults() {
         return results;
-    }
-
-    public void setResults(List<Character> results) {
-        this.results = results;
     }
 }

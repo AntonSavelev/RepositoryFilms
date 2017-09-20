@@ -1,11 +1,12 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.utils;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
+import com.example.repositoryfilms.model.Character;
+import com.example.repositoryfilms.model.DBHelper;
 import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +14,8 @@ public class PeopleDbHelper {
     private DBHelper helper;
     private Gson gson;
 
-    public PeopleDbHelper(DBHelper helper, Gson gson) {
-        this.helper = helper;
+    public PeopleDbHelper(DBHelper dbHelper, Gson gson) {
+        this.helper = dbHelper;
         this.gson = gson;
     }
 

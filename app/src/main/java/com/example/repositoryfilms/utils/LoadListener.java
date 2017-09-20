@@ -1,4 +1,6 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.utils;
+
+import com.example.repositoryfilms.model.Character;
 
 import java.util.List;
 

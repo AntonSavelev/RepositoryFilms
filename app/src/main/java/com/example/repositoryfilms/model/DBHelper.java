@@ -1,4 +1,4 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.model;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

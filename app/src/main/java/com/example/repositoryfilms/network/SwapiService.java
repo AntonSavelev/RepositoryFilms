@@ -1,4 +1,6 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.network;
+
+import com.example.repositoryfilms.model.AllPeople;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

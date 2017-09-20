@@ -1,4 +1,4 @@
-package com.example.repositoryfilms;
+package com.example.repositoryfilms.network;
 
 import com.google.gson.Gson;
 
