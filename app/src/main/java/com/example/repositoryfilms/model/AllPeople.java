@@ -9,7 +9,7 @@ import java.util.List;
 public class AllPeople {
     @SerializedName("count")
     @Expose
-    private String count;
+    private int count;
     @SerializedName("next")
     @Expose
     private String next;
@@ -20,7 +20,7 @@ public class AllPeople {
     @Expose
     private List<Character> results = null;
 
-    public String getCount() {
+    public int getCount() {
         return count;
     }
 

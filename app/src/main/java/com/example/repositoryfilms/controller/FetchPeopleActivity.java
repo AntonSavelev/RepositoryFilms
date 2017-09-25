@@ -7,12 +7,12 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
-import com.example.repositoryfilms.utils.LoadListener;
-import com.example.repositoryfilms.utils.Loader;
-import com.example.repositoryfilms.adapter.MyAdapter;
 import com.example.repositoryfilms.R;
+import com.example.repositoryfilms.adapter.MyAdapter;
 import com.example.repositoryfilms.managers.App;
 import com.example.repositoryfilms.model.Character;
+import com.example.repositoryfilms.utils.LoadListener;
+import com.example.repositoryfilms.utils.Loader;
 
 import java.util.List;
 
@@ -20,25 +20,25 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
 
     private MyAdapter adapter;
     private Loader loader;
-    private boolean isLoading = false;
+//    private boolean isLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        if (savedInstanceState != null) {
-            loader = (Loader) savedInstanceState.getSerializable("Loader");
-        } else {
+//        if (savedInstanceState != null) {
+//            loader = (Loader) savedInstanceState.getSerializable("Loader");
+//        } else {
             loader = App.getLoader();
-        }
+//        }
 
         final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 requestNextItems();
-                swipeRefreshLayout.setRefreshing(false);
+//                swipeRefreshLayout.setRefreshing(false);
             }
         });
 
@@ -53,14 +53,14 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
                 super.onScrolled(recyclerView, dx, dy);
                 int totalItemCount = layoutManager.getItemCount();
                 int lastVisibleItems = layoutManager.findLastVisibleItemPosition();
-                if (!isLoading) {
+//                if (!isLoading) {
                     if (totalItemCount <= lastVisibleItems + 5) {
-                        isLoading = true;
-                        if (loader != null) {
+//                        isLoading = true;
+//                        if (loader != null) {
                             requestNextItems();
-                        }
+//                        }
                     }
-                }
+//                }
             }
         };
         recyclerView.addOnScrollListener(scrollListener);
@@ -69,7 +69,7 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable("Loader", loader);
+//        outState.putSerializable("Loader", loader);
     }
 
     public void setDataInAdapter(List<Character> characters) {
@@ -94,9 +94,14 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
     }
 
     @Override
-    public void onCharactersLoaded(List<Character> characters) {
-        setDataInAdapter(characters);
-        isLoading = false;
+    public void onCharactersLoaded(final List<Character> characters) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setDataInAdapter(characters);
+            }
+        });
+//        isLoading = false;
     }
 
     @Override

@@ -3,7 +3,6 @@ package com.example.repositoryfilms.utils;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.Toast;
 
 import com.example.repositoryfilms.model.AllPeople;
 import com.example.repositoryfilms.model.Character;
@@ -17,7 +16,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import okhttp3.Response;
 import retrofit2.Call;
 
 public class Loader implements Serializable {
@@ -28,27 +26,27 @@ public class Loader implements Serializable {
     private SwapiService service;
     private PeopleDbHelper peopleDbHelper;
     private Set<LoadListener> listeners = new HashSet<>();
-    private Handler h;
+    private Handler handler;
     private int total = 0;
 
     public Loader(SwapiService service, PeopleDbHelper peopleDbHelper) {
         this.service = service;
         this.peopleDbHelper = peopleDbHelper;
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                characters.addAll((List<Character>) msg.obj);
+                Loader.this.peopleDbHelper.saveCharacters(characters);
+                total = msg.arg1;
+                notifyDataLoaded(characters);
+            }
+        };
     }
 
     public void loadMore() {
         numberOfRequest = 1 + characters.size() / AMOUNT_OF_ITEM_ON_PAGE;
         if (characters.size() < total || total == 0) {
-            h = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    super.handleMessage(msg);
-                    characters.addAll((List<Character>) msg.obj);
-                    peopleDbHelper.saveCharacters(characters);
-                    total = msg.arg1;
-                    notifyDataLoaded(characters);
-                }
-            };
             new MyAsyncTask().execute(numberOfRequest);
         }
     }
@@ -89,19 +87,20 @@ public class Loader implements Serializable {
 
     private class MyAsyncTask extends AsyncTask<Integer, Void, String> {
         @Override
-        protected String doInBackground(Integer... integers) {
-            Message msg;
-            AllPeople allPeople;
+        protected String doInBackground(Integer... params) {
             String exception = null;
             List<Character> characters = new ArrayList<>();
-            Call<AllPeople> call = service.getAllPeoples(integers[0]);
+            Call<AllPeople> call = service.getAllPeoples(params[0]);
             try {
                 retrofit2.Response<AllPeople> response = call.execute();
                 if (response.isSuccessful()) {
-                    allPeople = response.body();
-                    characters.addAll(allPeople.getResults());
-                    msg = h.obtainMessage(0, Integer.parseInt(allPeople.getCount()), 0, characters);
-                    h.sendMessage(msg);
+                    AllPeople allPeople = response.body();
+                    List<Character> results = allPeople.getResults();
+                    if (results != null) {
+                        characters.addAll(results);
+                    }
+                    Message msg = handler.obtainMessage(0, allPeople.getCount(), 0, characters);
+                    handler.sendMessage(msg);
                 } else {
                     switch (response.code()) {
                         case 404:
@@ -126,7 +125,6 @@ public class Loader implements Serializable {
 
         @Override
         protected void onPostExecute(String ex) {
-            super.onPostExecute(ex);
             if (ex != null) {
                 notifyDataLoadingError(ex);
             }

@@ -63,7 +63,6 @@ public class Character {
         return height;
     }
 
-
     public String getMass() {
         return mass;
     }
