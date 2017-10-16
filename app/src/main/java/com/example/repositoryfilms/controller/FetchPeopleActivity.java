@@ -1,5 +1,6 @@
 package com.example.repositoryfilms.controller;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -18,22 +19,16 @@ import java.util.List;
 
 public class FetchPeopleActivity extends AppCompatActivity implements LoadListener {
 
+    SwipeRefreshLayout swipeRefreshLayout;
     private MyAdapter adapter;
     private Loader loader;
-    private boolean isLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        if (savedInstanceState != null) {
-            loader = (Loader) savedInstanceState.getSerializable("Loader");
-        } else {
-            loader = App.getLoader();
-        }
-
-        final SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -47,15 +42,23 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
         recyclerView.setLayoutManager(layoutManager);
         adapter = new MyAdapter();
         recyclerView.setAdapter(adapter);
+        adapter.setListener(new MyAdapter.Listener() {
+            @Override
+            public void onClick(Character character) {
+                Intent intent = new Intent(FetchPeopleActivity.this, DetailCharacterActivity.class);
+                intent.putExtra(App.getCharacterDetailInformation(), character);
+                startActivity(intent);
+            }
+        });
         RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 int totalItemCount = layoutManager.getItemCount();
                 int lastVisibleItems = layoutManager.findLastVisibleItemPosition();
-                if (!isLoading) {
+                if (!swipeRefreshLayout.isRefreshing() && totalItemCount < Loader.getTotalCharacters()) {
                     if (totalItemCount <= lastVisibleItems + 5) {
-                        isLoading = true;
+                        swipeRefreshLayout.setRefreshing(true);
                         if (loader != null) {
                             requestNextItems();
                         }
@@ -64,12 +67,7 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
             }
         };
         recyclerView.addOnScrollListener(scrollListener);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("Loader", loader);
+        loader = App.getLoader();
     }
 
     public void setDataInAdapter(List<Character> characters) {
@@ -96,7 +94,7 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
     @Override
     public void onCharactersLoaded(List<Character> characters) {
         setDataInAdapter(characters);
-        isLoading = false;
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
