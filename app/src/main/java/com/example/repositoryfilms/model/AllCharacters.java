@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class AllPeople {
+public class AllCharacters {
     @SerializedName("count")
     @Expose
     private String count;

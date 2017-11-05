@@ -10,8 +10,14 @@ import com.google.gson.Gson;
 
 
 public class App extends Application {
+    private static final String CHARACTER_NAME = "characterName";
     private static App instance;
     private static Loader loader;
+
+    public static String getCharacterDetailInformation() {
+        return CHARACTER_NAME;
+    }
+
 
     public synchronized static Loader getLoader() {
         if (loader == null) {

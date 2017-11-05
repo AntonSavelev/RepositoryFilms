@@ -44,12 +44,13 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
         recyclerView.setAdapter(adapter);
         adapter.setListener(new MyAdapter.Listener() {
             @Override
-            public void onClick(Character character) {
+            public void onClick(String characterName) {
                 Intent intent = new Intent(FetchPeopleActivity.this, DetailCharacterActivity.class);
-                intent.putExtra(App.getCharacterDetailInformation(), character);
+                intent.putExtra(App.getCharacterDetailInformation(), characterName);
                 startActivity(intent);
             }
         });
+
         RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {

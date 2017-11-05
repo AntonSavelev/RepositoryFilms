@@ -3,62 +3,67 @@ package com.example.repositoryfilms.utils;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
-import android.widget.Toast;
 
-import com.example.repositoryfilms.model.AllPeople;
+import com.example.repositoryfilms.model.AllCharacters;
 import com.example.repositoryfilms.model.Character;
 import com.example.repositoryfilms.network.SwapiService;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import okhttp3.Response;
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class Loader implements Serializable {
+public class Loader {
 
     private static final int AMOUNT_OF_ITEM_ON_PAGE = 10;
-    private static int numberOfRequest;
+    private static int pageNumber;
+    private static int totalCharacters = 0;
     final List<Character> characters = new ArrayList<>();
     private SwapiService service;
     private PeopleDbHelper peopleDbHelper;
     private Set<LoadListener> listeners = new HashSet<>();
+    private Set<LoadDetailCharacterListener> detailCharacterListeners = new HashSet<>();
     private Handler h;
-    private int total = 0;
 
     public Loader(SwapiService service, PeopleDbHelper peopleDbHelper) {
         this.service = service;
         this.peopleDbHelper = peopleDbHelper;
     }
 
+    public static int getTotalCharacters() {
+        return totalCharacters;
+    }
+
     public void loadMore() {
-        numberOfRequest = 1 + characters.size() / AMOUNT_OF_ITEM_ON_PAGE;
-        if (characters.size() < total || total == 0) {
+        pageNumber = 1 + characters.size() / AMOUNT_OF_ITEM_ON_PAGE;
+        if (characters.size() < totalCharacters || totalCharacters == 0) {
             h = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     super.handleMessage(msg);
                     characters.addAll((List<Character>) msg.obj);
                     peopleDbHelper.saveCharacters(characters);
-                    total = msg.arg1;
+                    totalCharacters = msg.arg1;
                     notifyDataLoaded(characters);
                 }
             };
-            new MyAsyncTask().execute(numberOfRequest);
+            new MyAsyncTask().execute(pageNumber);
         }
     }
 
     public void readDB() {
-        if (peopleDbHelper.getCharacters().size() != 0) {
+        int charactersSize = peopleDbHelper.getCharacters().size();
+        if (charactersSize != 0) {
             characters.clear();
             characters.addAll(peopleDbHelper.getCharacters());
             notifyDataLoaded(characters);
-            numberOfRequest = 1 + peopleDbHelper.getCharacters().size() / AMOUNT_OF_ITEM_ON_PAGE;
+            pageNumber = 1 + charactersSize / AMOUNT_OF_ITEM_ON_PAGE;
         }
     }
 
@@ -87,20 +92,96 @@ public class Loader implements Serializable {
         }
     }
 
+    public void saveCharacterDetailToDb(Character character) {
+        peopleDbHelper.saveCharacter(character);
+    }
+
+    public Character readCharacterDetailFromDb(String characterName) {
+        Character character = peopleDbHelper.getCharacter(characterName);
+        return character;
+    }
+
+
+    private void notifyDetailDataLoaded(Character character) {
+        Iterator<LoadDetailCharacterListener> iterator = detailCharacterListeners.iterator();
+        if (iterator.hasNext()) {
+            LoadDetailCharacterListener detailCharacterListener = iterator.next();
+            detailCharacterListener.onDetailCharacterLoaded(character);
+        }
+    }
+
+    private void notifyDetailDataLoadingError(String exception) {
+        Iterator<LoadDetailCharacterListener> iterator = detailCharacterListeners.iterator();
+        if (iterator.hasNext()) {
+            LoadDetailCharacterListener detailCharacterListener = iterator.next();
+            detailCharacterListener.onDetailCharacterLoadingError(exception);
+        }
+    }
+
+    public boolean addLoadDetailListener(LoadDetailCharacterListener loadDetailCharacterListener) {
+        return detailCharacterListeners.add(loadDetailCharacterListener);
+    }
+
+    public void removeLoadDetailListener(LoadDetailCharacterListener loadDetailCharacterListener) {
+        if (!detailCharacterListeners.remove(loadDetailCharacterListener)) {
+        }
+    }
+
+    public Character loadCharacterDetail(String characterName) {
+        final Character[] character = {null};
+        final String[] exception = {null};
+        service.getPeopleSearch(characterName).enqueue(new Callback<AllCharacters>() {
+            @Override
+            public void onResponse(Call<AllCharacters> call, Response<AllCharacters> response) {
+                if (response.isSuccessful()) {
+                    AllCharacters allCharacters = response.body();
+                    character[0] = allCharacters.getResults().get(0);
+                    notifyDetailDataLoaded(character[0]);
+                } else {
+                    switch (response.code()) {
+                        case 404:
+                            exception[0] = "Not Found";
+                            break;
+                        case 408:
+                            exception[0] = "Request Timeout";
+                            break;
+                        case 500:
+                            exception[0] = "Server Error";
+                            break;
+                        default:
+                            exception[0] = "Response failed";
+                            break;
+                    }
+                    notifyDetailDataLoadingError(exception[0]);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<AllCharacters> call, Throwable t) {
+                notifyDataLoadingError(t.getMessage());
+            }
+        });
+        return character[0];
+    }
+
+
     private class MyAsyncTask extends AsyncTask<Integer, Void, String> {
         @Override
         protected String doInBackground(Integer... integers) {
             Message msg;
-            AllPeople allPeople;
+            AllCharacters allCharacters;
             String exception = null;
             List<Character> characters = new ArrayList<>();
-            Call<AllPeople> call = service.getAllPeoples(integers[0]);
+            List<Character> results;
+            Call<AllCharacters> call = service.getAllPeoples(integers[0]);
             try {
-                retrofit2.Response<AllPeople> response = call.execute();
+                retrofit2.Response<AllCharacters> response = call.execute();
                 if (response.isSuccessful()) {
-                    allPeople = response.body();
-                    characters.addAll(allPeople.getResults());
-                    msg = h.obtainMessage(0, Integer.parseInt(allPeople.getCount()), 0, characters);
+                    allCharacters = response.body();
+                    results = allCharacters.getResults();
+                    characters.addAll(results);
+                    int charactersQuantity = Integer.parseInt(allCharacters.getCount());
+                    msg = h.obtainMessage(0, charactersQuantity, 0, characters);
                     h.sendMessage(msg);
                 } else {
                     switch (response.code()) {
@@ -125,10 +206,10 @@ public class Loader implements Serializable {
         }
 
         @Override
-        protected void onPostExecute(String ex) {
-            super.onPostExecute(ex);
-            if (ex != null) {
-                notifyDataLoadingError(ex);
+        protected void onPostExecute(String exeption) {
+            super.onPostExecute(exeption);
+            if (exeption != null) {
+                notifyDataLoadingError(exeption);
             }
         }
     }
