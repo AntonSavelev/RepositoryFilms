@@ -23,8 +23,8 @@ public class Loader {
 
     private static final int AMOUNT_OF_ITEM_ON_PAGE = 10;
     private static int pageNumber;
-    private static int totalCharacters = 0;
     final List<Character> characters = new ArrayList<>();
+    private int totalCharacters = 0;
     private SwapiService service;
     private PeopleDbHelper peopleDbHelper;
     private Set<LoadListener> listeners = new HashSet<>();
@@ -36,8 +36,12 @@ public class Loader {
         this.peopleDbHelper = peopleDbHelper;
     }
 
-    public static int getTotalCharacters() {
+    public int getTotalCharacters() {
         return totalCharacters;
+    }
+
+    public void setTotalCharacters(int totalCharacters) {
+        this.totalCharacters = totalCharacters;
     }
 
     public void loadMore() {
@@ -53,11 +57,13 @@ public class Loader {
                     notifyDataLoaded(characters);
                 }
             };
-            new MyAsyncTask().execute(pageNumber);
+            if (pageNumber <= 1 + (totalCharacters / AMOUNT_OF_ITEM_ON_PAGE)) {
+                new MyAsyncTask().execute(pageNumber);
+            }
         }
     }
 
-    public void readDB() {
+    public void readListCharactersFromDb() {
         int charactersSize = peopleDbHelper.getCharacters().size();
         if (charactersSize != 0) {
             characters.clear();
@@ -65,6 +71,13 @@ public class Loader {
             notifyDataLoaded(characters);
             pageNumber = 1 + charactersSize / AMOUNT_OF_ITEM_ON_PAGE;
         }
+    }
+
+    public boolean isDbExist() {
+        int charactersSize = peopleDbHelper.getCharacters().size();
+        if (charactersSize != 0) {
+            return true;
+        } else return false;
     }
 
     private void notifyDataLoaded(List<Character> characters) {
@@ -100,7 +113,6 @@ public class Loader {
         Character character = peopleDbHelper.getCharacter(characterName);
         return character;
     }
-
 
     private void notifyDetailDataLoaded(Character character) {
         Iterator<LoadDetailCharacterListener> iterator = detailCharacterListeners.iterator();
@@ -163,7 +175,6 @@ public class Loader {
         });
         return character[0];
     }
-
 
     private class MyAsyncTask extends AsyncTask<Integer, Void, String> {
         @Override

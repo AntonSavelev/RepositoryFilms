@@ -1,6 +1,7 @@
 package com.example.repositoryfilms.controller;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +20,9 @@ import java.util.List;
 
 public class FetchPeopleActivity extends AppCompatActivity implements LoadListener {
 
+    final String SAVED_TOTAL_CHARACTERS = "saved_total_characters";
     SwipeRefreshLayout swipeRefreshLayout;
+    SharedPreferences sPref;
     private MyAdapter adapter;
     private Loader loader;
 
@@ -27,8 +30,20 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
+        initSwipeRefreshLayout();
+        initRecyclerView();
+        loader = App.getLoader();
+        if (loader.isDbExist()) {
+            loadPref();
+        }
+    }
 
+    public void initSwipeRefreshLayout() {
         swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -36,7 +51,9 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
                 swipeRefreshLayout.setRefreshing(false);
             }
         });
+    }
 
+    public void initRecyclerView() {
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.r_view);
         final GridLayoutManager layoutManager = new GridLayoutManager(FetchPeopleActivity.this, 1);
         recyclerView.setLayoutManager(layoutManager);
@@ -50,14 +67,13 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
                 startActivity(intent);
             }
         });
-
         RecyclerView.OnScrollListener scrollListener = new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 int totalItemCount = layoutManager.getItemCount();
                 int lastVisibleItems = layoutManager.findLastVisibleItemPosition();
-                if (!swipeRefreshLayout.isRefreshing() && totalItemCount < Loader.getTotalCharacters()) {
+                if (!swipeRefreshLayout.isRefreshing() && totalItemCount < loader.getTotalCharacters()) {
                     if (totalItemCount <= lastVisibleItems + 5) {
                         swipeRefreshLayout.setRefreshing(true);
                         if (loader != null) {
@@ -68,7 +84,6 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
             }
         };
         recyclerView.addOnScrollListener(scrollListener);
-        loader = App.getLoader();
     }
 
     public void setDataInAdapter(List<Character> characters) {
@@ -79,17 +94,30 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
     protected void onStart() {
         super.onStart();
         loader.addLoadListener(this);
-        loader.readDB();
+        loader.readListCharactersFromDb();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         loader.removeLoadListener(this);
+        savePref();
     }
 
     private void requestNextItems() {
         loader.loadMore();
+    }
+
+    public void savePref() {
+        sPref = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor ed = sPref.edit();
+        ed.putInt(SAVED_TOTAL_CHARACTERS, loader.getTotalCharacters());
+        ed.apply();
+    }
+
+    public void loadPref() {
+        sPref = getPreferences(MODE_PRIVATE);
+        loader.setTotalCharacters(sPref.getInt(SAVED_TOTAL_CHARACTERS, 0));
     }
 
     @Override

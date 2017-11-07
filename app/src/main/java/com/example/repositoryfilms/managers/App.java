@@ -18,7 +18,6 @@ public class App extends Application {
         return CHARACTER_NAME;
     }
 
-
     public synchronized static Loader getLoader() {
         if (loader == null) {
             Gson gson = new Gson();
@@ -34,4 +33,6 @@ public class App extends Application {
         super.onCreate();
         instance = this;
     }
+
+
 }
