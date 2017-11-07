@@ -32,10 +32,8 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
         setContentView(R.layout.activity_list);
         initSwipeRefreshLayout();
         initRecyclerView();
-        loader = App.getLoader();
-        if (loader.isDbExist()) {
-            loadPref();
-        }
+        getLoader();
+        loadCharacters();
     }
 
     public void initSwipeRefreshLayout() {
@@ -84,6 +82,19 @@ public class FetchPeopleActivity extends AppCompatActivity implements LoadListen
             }
         };
         recyclerView.addOnScrollListener(scrollListener);
+    }
+
+    public void getLoader(){
+        loader = App.getLoader();
+    }
+
+    public void loadCharacters(){
+        if (loader.isDbExist()) {
+            loadPref();
+        } else{
+            swipeRefreshLayout.setRefreshing(true);
+            requestNextItems();
+        }
     }
 
     public void setDataInAdapter(List<Character> characters) {
